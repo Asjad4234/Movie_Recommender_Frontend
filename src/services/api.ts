@@ -4,6 +4,8 @@ export interface Movie {
   title: string;
   rating?: number;
   genres?: string;
+  poster_url?: string | null;
+  similarity_score?: number;
   [key: string]: unknown;
 }
 
@@ -44,7 +46,10 @@ export async function getRecommendations(data: RecommendRequest): Promise<Movie[
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  return handleResponse<Movie[]>(res);
+  const result = await handleResponse<any>(res);
+  if (Array.isArray(result)) return result;
+  if (result && Array.isArray(result.recommendations)) return result.recommendations;
+  throw new Error('Unexpected response shape from /recommend');
 }
 
 export async function getHybridRecommendations(data: HybridRecommendRequest): Promise<Movie[]> {
@@ -53,5 +58,8 @@ export async function getHybridRecommendations(data: HybridRecommendRequest): Pr
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  return handleResponse<Movie[]>(res);
+  const result = await handleResponse<any>(res);
+  if (Array.isArray(result)) return result;
+  if (result && Array.isArray(result.recommendations)) return result.recommendations;
+  throw new Error('Unexpected response shape from /recommend-hybrid');
 }
