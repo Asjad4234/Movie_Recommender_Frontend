@@ -14,7 +14,7 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
-          {selectedUserName && (
+          {selectedUserName ? (
             <>
               <Link
                 to="/profiles"
@@ -23,16 +23,34 @@ export function Navbar() {
                 Switch Profile
               </Link>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
+                <div className="w-8 h-8 rounded bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
                   <span className="text-primary-foreground text-sm font-bold">
-                    {selectedUserName[0]}
+                    {selectedUserName[0].toUpperCase()}
                   </span>
                 </div>
-                <span className="text-sm text-foreground hidden md:block">
+                <span className="text-sm text-foreground font-medium hidden md:block">
                   {selectedUserName}
                 </span>
               </div>
             </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link
+                to="/profiles"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Existing Profiles
+              </Link>
+              <button
+                onClick={() => {
+                  // This will be handled by dashboard state
+                  window.dispatchEvent(new CustomEvent("trigger-profile-setup"));
+                }}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded text-sm font-semibold transition-all shadow-lg shadow-primary/20"
+              >
+                Set up Profile
+              </button>
+            </div>
           )}
         </div>
       </div>
