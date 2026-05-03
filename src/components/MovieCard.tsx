@@ -3,13 +3,24 @@ import { useState } from "react";
 
 interface MovieCardProps {
   movie: Movie;
+  onClick?: () => void;
 }
 
-export function MovieCard({ movie }: MovieCardProps) {
+export function MovieCard({ movie, onClick }: MovieCardProps) {
   const [posterError, setPosterError] = useState(false);
 
   return (
-    <div className="movie-card relative flex-shrink-0 w-[200px] md:w-[240px] rounded-sm overflow-hidden cursor-pointer group">
+    <div 
+      className="movie-card relative flex-shrink-0 w-[200px] md:w-[240px] rounded-sm overflow-hidden cursor-pointer group"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick?.();
+        }
+      }}
+    >
       {/* Poster image or fallback gradient */}
       <div className="aspect-[2/3] bg-gradient-to-b from-secondary to-background relative overflow-hidden">
         {movie.poster_url && !posterError ? (

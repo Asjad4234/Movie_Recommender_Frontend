@@ -3,8 +3,10 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Navbar } from "../components/Navbar";
 import { RowSlider } from "../components/RowSlider";
+import { MovieDetailModal } from "../components/MovieDetailModal";
 import { useApp } from "../context/AppContext";
 import { getMovies, getRecommendations, getHybridRecommendations } from "../services/api";
+import type { Movie } from "../services/api";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -45,6 +47,8 @@ function DashboardPage() {
 
   const [showControls, setShowControls] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [showMovieDetail, setShowMovieDetail] = useState(false);
 
   // Redirect if no user selected
   useEffect(() => {
@@ -228,9 +232,12 @@ function DashboardPage() {
         {(recommendations.length > 0 || isLoading) && (
           <RowSlider
             title="Movie-Based Recommendations"
-            icon="🎬"
             movies={recommendations}
             isLoading={isLoading}
+            onMovieClick={(movie) => {
+              setSelectedMovie(movie);
+              setShowMovieDetail(true);
+            }}
           />
         )}
 
@@ -238,20 +245,36 @@ function DashboardPage() {
         {(hybridRecommendations.length > 0 || isHybridLoading) && (
           <RowSlider
             title="Personalized For You"
-            icon="🤖"
             movies={hybridRecommendations}
             isLoading={isHybridLoading}
+            onMovieClick={(movie) => {
+              setSelectedMovie(movie);
+              setShowMovieDetail(true);
+            }}
           />
         )}
 
         {/* Popular movies */}
         <RowSlider
           title="Popular Movies"
-          icon="🔥"
           movies={popularMovies}
           isLoading={isPopularLoading}
+          onMovieClick={(movie) => {
+            setSelectedMovie(movie);
+            setShowMovieDetail(true);
+          }}
         />
       </div>
+
+      {/* Movie Detail Modal */}
+      <MovieDetailModal 
+        movie={selectedMovie}
+        isOpen={showMovieDetail}
+        onClose={() => {
+          setShowMovieDetail(false);
+          setSelectedMovie(null);
+        }}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ interface RowSliderProps {
   icon?: string;
   movies: Movie[];
   isLoading?: boolean;
+  onMovieClick?: (movie: Movie) => void;
 }
 
 function SkeletonCard() {
@@ -21,7 +22,7 @@ function SkeletonCard() {
   );
 }
 
-export function RowSlider({ title, icon, movies, isLoading }: RowSliderProps) {
+export function RowSlider({ title, icon, movies, isLoading, onMovieClick }: RowSliderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(true);
@@ -85,7 +86,13 @@ export function RowSlider({ title, icon, movies, isLoading }: RowSliderProps) {
                   <p className="text-muted-foreground text-sm">No movies to show</p>
                 </div>
               )
-              : movies.map((movie, i) => <MovieCard key={`${movie.title}-${i}`} movie={movie} />)
+              : movies.map((movie, i) => (
+                  <MovieCard 
+                    key={`${movie.title}-${i}`} 
+                    movie={movie}
+                    onClick={() => onMovieClick?.(movie)}
+                  />
+                ))
           }
         </div>
       </div>
