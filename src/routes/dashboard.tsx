@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Navbar } from "../components/Navbar";
 import { RowSlider } from "../components/RowSlider";
 import { MovieDetailModal } from "../components/MovieDetailModal";
+import { AvatarSelector } from "../components/AvatarSelector";
 import { useApp } from "../context/AppContext";
 import { useMyList } from "../hooks/useMyList";
 import { getPopularMovies, getRecommendations, getHybridRecommendations, getRecommendationsFromMyList, getRecommendationsByGenres, searchMovies } from "../services/api";
@@ -60,10 +61,31 @@ function DashboardPage() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [showMovieDetail, setShowMovieDetail] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Avatar state
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Load avatar for the current user
+  useEffect(() => {
+    if (selectedUserId) {
+      const saved = localStorage.getItem(`avatar_${selectedUserId}`);
+      setAvatarUrl(saved);
+    }
+  }, [selectedUserId]);
+
+  const handleAvatarSelect = (url: string) => {
+    setAvatarUrl(url);
+    if (selectedUserId) {
+      localStorage.setItem(`avatar_${selectedUserId}`, url);
+    }
+    setShowAvatarSelector(false);
+    toast.success("Avatar updated!");
+  };
 
   const { myList } = useMyList();
   const [myListRecs, setMyListRecs] = useState<Movie[]>([]);
@@ -80,6 +102,30 @@ function DashboardPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Helper to generate row labels based on recommendation source
+  const getRowLabel = (source: string | undefined, queryTitle?: string): string => {
+    switch (source) {
+      case 'item_based':
+      case 'collaborative':
+        return queryTitle ? `Because you searched for ${queryTitle}` : 'Movie-Based Recommendations';
+      case 'user_based':
+        return 'Users like you also watched';
+      case 'hybrid':
+      case 'hybrid_with_content':
+        return queryTitle ? `Movies in the spirit of ${queryTitle}` : 'Personalized For You';
+      case 'content_based':
+        return queryTitle ? `More like ${queryTitle} by genre` : 'Similar By Genre';
+      case 'genre_based':
+        return 'Picked for you based on your taste';
+      case 'my_list':
+        return 'Because you saved these';
+      case 'popular':
+        return 'Most Watched';
+      default:
+        return 'Recommended for you';
+    }
+  };
 
   // Listen for the "Set up profile" button from Navbar
   useEffect(() => {
@@ -389,7 +435,18 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      {/* Avatar Selector Modal */}
+      {showAvatarSelector && (
+        <AvatarSelector
+          onSelect={handleAvatarSelect}
+          onCancel={() => setShowAvatarSelector(false)}
+        />
+      )}
+
+      <Navbar 
+        avatarUrl={avatarUrl} 
+        onAvatarClick={() => setShowAvatarSelector(true)}
+      />
 
       {/* Search section */}
       <div className="pt-24 pb-6 px-4 md:px-12">
@@ -537,7 +594,7 @@ function DashboardPage() {
         {/* Movie-based recommendations */}
         {(recommendations.length > 0 || isLoading) && (
           <RowSlider
-            title="Movie-Based Recommendations"
+            title={getRowLabel('item_based', searchQuery)}
             movies={recommendations}
             isLoading={isLoading}
             onMovieClick={(movie) => {
@@ -550,7 +607,7 @@ function DashboardPage() {
         {/* Hybrid recommendations */}
         {selectedUserId && selectedUserId !== 1000 && (hybridRecommendations.length > 0 || isHybridLoading) && (
           <RowSlider
-            title="Personalized For You"
+            title={getRowLabel('hybrid', searchQuery)}
             movies={hybridRecommendations}
             isLoading={isHybridLoading}
             onMovieClick={(movie) => {
@@ -563,7 +620,7 @@ function DashboardPage() {
         {/* My List Based Recommendations */}
         {selectedUserId && selectedUserId !== 1000 && (myListRecs.length > 0 || isMyListLoading) && (
           <RowSlider
-            title="Because You Saved These"
+            title={getRowLabel('my_list')}
             movies={myListRecs}
             isLoading={isMyListLoading}
             onMovieClick={(movie) => {
@@ -576,7 +633,7 @@ function DashboardPage() {
         {/* Genre-based cold-start recommendations */}
         {selectedUserId && selectedUserId !== 1000 && (genreRecs.length > 0 || isGenreRecsLoading) && (
           <RowSlider
-            title="Picked for you based on your taste"
+            title={getRowLabel('genre_based')}
             movies={genreRecs}
             isLoading={isGenreRecsLoading}
             onMovieClick={(movie) => {
@@ -588,7 +645,7 @@ function DashboardPage() {
 
         {/* Popular movies (ranked by popularity score) */}
         <RowSlider
-          title="Most Watched"
+          title={getRowLabel('popular')}
           movies={popularMovies}
           isLoading={isPopularLoading}
           onMovieClick={(movie) => {

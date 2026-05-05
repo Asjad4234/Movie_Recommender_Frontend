@@ -44,6 +44,11 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
           <h3 className="text-sm font-bold text-foreground leading-tight mb-1 line-clamp-2">
             {movie.title}
           </h3>
+          {movie.reason && (
+            <p className="text-xs text-amber-300 mb-2 line-clamp-2 leading-snug">
+              {movie.reason}
+            </p>
+          )}
           {movie.rating !== undefined && (
             <div className="flex items-center gap-1 mb-1">
               <span className="text-xs font-semibold text-green-400">
