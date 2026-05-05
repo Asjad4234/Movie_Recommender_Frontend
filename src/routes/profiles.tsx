@@ -139,20 +139,28 @@ function ProfilesPage() {
 
   // ── Profile picker view (default) ─────────────────────────────
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-      <h1 className="text-3xl md:text-4xl font-medium text-foreground mb-10">
-        Who's watching?
-      </h1>
-      <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
-        {displayProfiles.map((p) => (
-          <ProfileCard
-            key={p.userId}
-            userId={p.userId}
-            name={p.name}
-            color={p.color}
-            onClick={() => handleSelect(p.userId, p.name)}
-          />
-        ))}
+    <div className="min-h-screen bg-background flex flex-col px-4">
+      {/* MovieFlix Logo */}
+      <div className="pt-6 pb-12">
+        <h2 className="text-3xl font-bold text-red-600">MovieFlix</h2>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex flex-col items-center justify-start flex-1 pt-20">
+        <h1 className="text-3xl md:text-4xl font-medium text-foreground mb-10">
+          Who's watching?
+        </h1>
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
+          {displayProfiles.map((p) => (
+            <ProfileCard
+              key={p.userId}
+              userId={p.userId}
+              name={p.name}
+              color={p.color}
+              onClick={() => handleSelect(p.userId, p.name)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

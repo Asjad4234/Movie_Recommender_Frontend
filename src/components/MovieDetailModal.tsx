@@ -222,6 +222,19 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
               </div>
             )}
 
+            {/* Why Recommended - NEW SECTION */}
+            {movie.reason && (
+              <div className="mb-8 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-start gap-3">
+                  <span className="text-amber-400 text-xl leading-none mt-0.5">✦</span>
+                  <div>
+                    <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Why recommended</p>
+                    <p className="text-gray-200 text-sm leading-relaxed">{movie.reason}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Cast Section */}
             {cast && cast.length > 0 && (
               <div>

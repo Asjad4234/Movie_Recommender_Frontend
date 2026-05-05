@@ -1,7 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useApp } from "../context/AppContext";
 
-export function Navbar() {
+interface NavbarProps {
+  avatarUrl?: string | null;
+  onAvatarClick?: () => void;
+}
+
+export function Navbar({ avatarUrl, onAvatarClick }: NavbarProps) {
   const { selectedUserName } = useApp();
 
   return (
@@ -22,16 +27,31 @@ export function Navbar() {
               >
                 Switch Profile
               </Link>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                  <span className="text-primary-foreground text-sm font-bold">
-                    {selectedUserName[0].toUpperCase()}
-                  </span>
+              <button
+                onClick={onAvatarClick}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
+                title="Change avatar"
+              >
+                <div className="w-8 h-8 rounded bg-primary flex items-center justify-center shadow-lg shadow-primary/20 overflow-hidden">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={selectedUserName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <span className="text-primary-foreground text-sm font-bold">
+                      {selectedUserName[0].toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                <span className="text-sm text-foreground font-medium hidden md:block">
+                <span className="text-sm text-foreground font-medium hidden md:block group-hover:text-primary transition-colors">
                   {selectedUserName}
                 </span>
-              </div>
+              </button>
             </>
           ) : (
             <div className="flex items-center gap-3">

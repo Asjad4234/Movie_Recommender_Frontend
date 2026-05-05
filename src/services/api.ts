@@ -6,6 +6,9 @@ export interface Movie {
   genres?: string;
   poster_url?: string | null;
   similarity_score?: number;
+  reason?: string;
+  source?: string;
+  overview?: string;
   [key: string]: unknown;
 }
 
@@ -29,6 +32,24 @@ async function handleResponse<T>(res: Response): Promise<T> {
   }
   return res.json();
 }
+
+// Generic API client
+export const apiClient = {
+  async get<T>(endpoint: string): Promise<{ data: T }> {
+    const res = await fetch(`${API_BASE}${endpoint}`);
+    const data = await handleResponse<T>(res);
+    return { data };
+  },
+  async post<T>(endpoint: string, body?: unknown): Promise<{ data: T }> {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await handleResponse<T>(res);
+    return { data };
+  },
+};
 
 export async function getMovies(): Promise<Movie[]> {
   const res = await fetch(`${API_BASE}/movies`);
