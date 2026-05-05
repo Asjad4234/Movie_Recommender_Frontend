@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { X, Play, Plus, Check } from 'lucide-react'
 import type { Movie } from '../services/api'
+import { useMyList } from '../hooks/useMyList'
 
-interface MovieDetail extends Movie {
+interface MovieDetail extends Omit<Movie, 'genres'> {
   overview?: string
   backdrop_url?: string
   backdrop_path?: string
@@ -27,7 +28,9 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
   const [details, setDetails] = useState<MovieDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isInMyList, setIsInMyList] = useState(false)
+  
+  const { toggleMyList, isInMyList } = useMyList()
+  const isSaved = movie ? isInMyList(movie.title) : false
 
   useEffect(() => {
     if (!isOpen || !movie?.title) return
@@ -58,29 +61,18 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
       }
     }
 
-    // Check if movie is in My List
-    const myList = JSON.parse(localStorage.getItem('myList') || '[]')
-    setIsInMyList(myList.some((m: Movie) => m.title === movie.title))
-
     fetchDetails()
   }, [isOpen, movie])
 
-  const toggleMyList = () => {
-    if (!details) return
-
-    const myList = JSON.parse(localStorage.getItem('myList') || '[]')
-    
-    if (isInMyList) {
-      // Remove from list
-      const updated = myList.filter((m: Movie) => m.title !== details.title)
-      localStorage.setItem('myList', JSON.stringify(updated))
-      setIsInMyList(false)
-    } else {
-      // Add to list
-      myList.push(details)
-      localStorage.setItem('myList', JSON.stringify(myList))
-      setIsInMyList(true)
+  const handleToggleMyList = () => {
+    if (!movie) return
+    // Always use a clean movie object with title + poster_url to store consistently
+    const movieToSave: Movie = {
+      title: movie.title,
+      poster_url: (details as any)?.poster_url || movie.poster_url,
+      rating: (details as any)?.rating || movie.rating,
     }
+    toggleMyList(movieToSave)
   }
 
   const handlePlay = () => {
@@ -92,10 +84,19 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
 
   if (!isOpen || !movie) return null
 
-  const displayDetails = details || (movie as MovieDetail)
-  const backdropUrl = displayDetails.backdrop_url || displayDetails.poster_url
-  const genres = displayDetails.genres || []
+  const displayDetails = details || (movie as any)
+  const backdropUrl = displayDetails.backdrop_url || displayDetails.poster_url || displayDetails.backdrop_path
+  
+  // Ensure genres is always an array
+  let genres: string[] = []
+  if (Array.isArray(displayDetails.genres)) {
+    genres = displayDetails.genres
+  } else if (typeof displayDetails.genres === 'string') {
+    genres = displayDetails.genres.split(',').map((g: string) => g.trim())
+  }
+  
   const cast = displayDetails.cast || []
+  const rating = displayDetails.vote_average || displayDetails.rating || 0
 
   return (
     <div
@@ -140,11 +141,11 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
           <div className="px-8 py-6">
             {/* Rating, Runtime, Genres Bar */}
             <div className="flex items-center gap-4 mb-6 flex-wrap">
-              {displayDetails.vote_average && displayDetails.vote_average > 0 && (
+              {rating > 0 && (
                 <div className="flex items-center gap-2 bg-yellow-500/10 px-4 py-2 rounded-lg border border-yellow-500/20">
                   <span className="text-2xl text-yellow-400">★</span>
                   <span className="text-white font-bold text-lg">
-                    {(displayDetails.vote_average / 2).toFixed(1)}/5
+                    {(rating > 5 ? rating / 2 : rating).toFixed(1)}/5
                   </span>
                 </div>
               )}
@@ -179,14 +180,14 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
                 Play
               </button>
               <button
-                onClick={toggleMyList}
+                onClick={handleToggleMyList}
                 className={`flex items-center justify-center gap-3 px-8 py-3 font-bold text-lg rounded-lg transition-all hover:shadow-lg ${
-                  isInMyList
+                  isSaved
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-gray-700 text-white hover:bg-gray-600'
                 }`}
               >
-                {isInMyList ? (
+                {isSaved ? (
                   <>
                     <Check className="w-6 h-6" />
                     In My List
@@ -226,7 +227,7 @@ export function MovieDetailModal({ movie, isOpen, onClose }: MovieDetailModalPro
               <div>
                 <h3 className="text-2xl font-bold text-white mb-4">Cast</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {cast.map((actor, idx) => (
+                  {cast.map((actor: any, idx: number) => (
                     <div key={idx} className="text-center hover:opacity-80 transition">
                       {actor.profile_path && (
                         <img
