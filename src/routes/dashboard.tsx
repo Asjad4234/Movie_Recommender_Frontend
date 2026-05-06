@@ -182,10 +182,15 @@ function DashboardPage() {
       setIsMyListLoading(true);
       try {
         const titles = myList.map(m => m.title);
+        console.log(`🎬 Fetching recommendations for ${titles.length} saved movies:`, titles);
         const data = await getRecommendationsFromMyList(titles, 10);
+        console.log(`✅ Got ${data.length} recommendations from My List`);
         setMyListRecs(data);
       } catch (err) {
-        console.error("Failed to fetch my list recommendations:", err);
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error("❌ Failed to fetch my list recommendations:", errorMsg);
+        setMyListRecs([]);
+        // Optional: toast.error("Couldn't load recommendations for your saved movies");
       } finally {
         setIsMyListLoading(false);
       }
@@ -614,6 +619,26 @@ function DashboardPage() {
               setSelectedMovie(movie);
               setShowMovieDetail(true);
             }}
+          />
+        )}
+
+        {/* YOUR SAVED MOVIES WATCHLIST - With delete buttons */}
+        {selectedUserId && selectedUserId !== 1000 && myList.length > 0 && (
+          <RowSlider
+            title={`Your Watchlist (${myList.length})`}
+            icon=""
+            movies={myList}
+            isLoading={false}
+            onMovieClick={(movie) => {
+              setSelectedMovie(movie);
+              setShowMovieDetail(true);
+            }}
+            onMovieDelete={(movie) => {
+              const { removeFromMyList } = useMyList();
+              removeFromMyList(movie.title);
+              toast.success(`Removed "${movie.title}" from watchlist`);
+            }}
+            showDeleteButton={true}
           />
         )}
 

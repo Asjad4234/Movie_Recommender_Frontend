@@ -77,20 +77,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (stored) {
         try {
           initialList = JSON.parse(stored);
+          console.log(`📋 Loaded ${initialList.length} movies from localStorage (${storageKey})`);
         } catch (e) {
-          console.error("Failed to parse myList", e);
+          console.error("❌ Failed to parse myList from localStorage", e);
         }
+      } else {
+        console.log(`📭 No saved My List found in localStorage (${storageKey})`);
       }
 
       // Pre-load for existing users if local is empty
       if (initialList.length === 0 && selectedUserId && selectedUserId <= 943) {
         try {
+          console.log(`🔄 Fetching saved movies from backend for user ${selectedUserId}...`);
           const { getUserSavedMovies } = await import("../services/api");
           const backendMovies = await getUserSavedMovies(selectedUserId);
           initialList = backendMovies;
+          console.log(`✅ Loaded ${initialList.length} movies from backend`);
           localStorage.setItem(storageKey, JSON.stringify(initialList));
         } catch (e) {
-          console.error("Failed to fetch saved movies", e);
+          console.error("❌ Failed to fetch saved movies from backend", e);
         }
       }
       setMyList(initialList);
@@ -101,9 +106,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addToMyList = useCallback((movie: Movie) => {
     setMyList(prev => {
-      if (prev.some(m => m.title === movie.title)) return prev;
+      if (prev.some(m => m.title === movie.title)) {
+        console.log(`ℹ️ "${movie.title}" already in My List`);
+        return prev;
+      }
       const next = [...prev, movie];
       localStorage.setItem(storageKey, JSON.stringify(next));
+      console.log(`✅ Added "${movie.title}" to My List (total: ${next.length})`);
       return next;
     });
   }, [storageKey]);
@@ -112,6 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMyList(prev => {
       const next = prev.filter(m => m.title !== title);
       localStorage.setItem(storageKey, JSON.stringify(next));
+      console.log(`✅ Removed "${title}" from My List (total: ${next.length})`);
       return next;
     });
   }, [storageKey]);
@@ -123,6 +133,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ? prev.filter(m => m.title !== movie.title)
         : [...prev, movie];
       localStorage.setItem(storageKey, JSON.stringify(next));
+      console.log(`${exists ? '❌' : '✅'} "${movie.title}" ${exists ? 'removed from' : 'added to'} My List (total: ${next.length})`);
       return next;
     });
   }, [storageKey]);
