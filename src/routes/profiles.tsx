@@ -22,12 +22,6 @@ const PROFILES = [
   { userId: 1000, name: "Guest (New)", color: "#555555" },
 ];
 
-const ALL_GENRES = [
-  "Action", "Adventure", "Animation", "Children's", "Comedy", "Crime",
-  "Documentary", "Drama", "Fantasy", "Film-Noir", "Horror", "Musical",
-  "Mystery", "Romance", "Sci-Fi", "Thriller", "War", "Western", "unknown",
-];
-
 function ProfilesPage() {
   const navigate = useNavigate();
   const { setSelectedUser, newProfile } = useApp();
@@ -41,103 +35,15 @@ function ProfilesPage() {
     return p;
   });
 
-  // Genre picker state
-  const [pendingUser, setPendingUser] = useState<{ id: number; name: string } | null>(null);
-  const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
-
   const handleSelect = (userId: number, name: string) => {
-    const storageKey = `genre_prefs_${userId}`;
-    const savedPrefs = localStorage.getItem(storageKey);
-
-    // Skip onboarding if:
-    // 1. User is an existing user in the dataset (ID 1-943)
-    // 2. OR they already completed onboarding (prefs in localStorage)
-    if (userId <= 943 || savedPrefs) {
-      setSelectedUser(userId, name);
-      navigate({ to: "/dashboard" });
-    } else {
-      // Truly new user — show genre picker
-      setPendingUser({ id: userId, name });
-      setSelectedGenres(new Set());
-    }
-  };
-
-  const toggleGenre = (genre: string) => {
-    setSelectedGenres((prev) => {
-      const next = new Set(prev);
-      if (next.has(genre)) {
-        next.delete(genre);
-      } else {
-        next.add(genre);
-      }
-      return next;
-    });
-  };
-
-  const confirmGenres = () => {
-    if (!pendingUser || selectedGenres.size < 3) return;
-    const storageKey = `genre_prefs_${pendingUser.id}`;
-    localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedGenres)));
-    setSelectedUser(pendingUser.id, pendingUser.name);
+    // All users (existing and new) go directly to dashboard
+    // Genre selection happens on dashboard for new users
+    console.log(`👤 User selected: ${userId} (${name}) — going to dashboard`);
+    setSelectedUser(userId, name);
     navigate({ to: "/dashboard" });
   };
 
-  const cancelGenrePicker = () => {
-    setPendingUser(null);
-    setSelectedGenres(new Set());
-  };
-
-  // ── Genre picker view ──────────────────────────────────────────
-  if (pendingUser) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          What do you like, {pendingUser.name}?
-        </h1>
-        <p className="text-sm text-muted-foreground mb-8">
-          Pick at least <span className="text-primary font-semibold">3 genres</span> so we can
-          personalize your experience.
-        </p>
-
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-2xl mb-8">
-          {ALL_GENRES.map((genre) => {
-            const isSelected = selectedGenres.has(genre);
-            return (
-              <button
-                key={genre}
-                onClick={() => toggleGenre(genre)}
-                className={`px-4 py-2.5 rounded-md text-sm font-medium transition-all border ${
-                  isSelected
-                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25"
-                    : "bg-secondary text-secondary-foreground border-border hover:border-muted-foreground/50"
-                }`}
-              >
-                {genre}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={cancelGenrePicker}
-            className="px-5 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Back
-          </button>
-          <button
-            onClick={confirmGenres}
-            disabled={selectedGenres.size < 3}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2.5 rounded-md text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Continue ({selectedGenres.size}/3 min)
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Profile picker view (default) ─────────────────────────────
+  // ── Profile picker view ─────────────────────────────────────
   return (
     <div className="min-h-screen bg-background flex flex-col px-4">
       {/* MovieFlix Logo */}

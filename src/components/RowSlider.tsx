@@ -8,6 +8,8 @@ interface RowSliderProps {
   movies: Movie[];
   isLoading?: boolean;
   onMovieClick?: (movie: Movie) => void;
+  onMovieDelete?: (movie: Movie) => void;
+  showDeleteButton?: boolean;
 }
 
 function SkeletonCard() {
@@ -22,7 +24,7 @@ function SkeletonCard() {
   );
 }
 
-export function RowSlider({ title, icon, movies, isLoading, onMovieClick }: RowSliderProps) {
+export function RowSlider({ title, icon, movies, isLoading, onMovieClick, onMovieDelete, showDeleteButton }: RowSliderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(true);
@@ -87,11 +89,26 @@ export function RowSlider({ title, icon, movies, isLoading, onMovieClick }: RowS
                 </div>
               )
               : movies.map((movie, i) => (
-                  <MovieCard 
-                    key={`${movie.title}-${i}`} 
-                    movie={movie}
-                    onClick={() => onMovieClick?.(movie)}
-                  />
+                  <div key={`${movie.title}-${i}`} className="relative group flex-shrink-0">
+                    <MovieCard 
+                      movie={movie}
+                      onClick={() => onMovieClick?.(movie)}
+                    />
+                    {showDeleteButton && onMovieDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMovieDelete(movie);
+                        }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-all shadow-lg"
+                        title="Remove from My List"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 ))
           }
         </div>
